@@ -13,6 +13,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+        "time"
 )
 
 const dbFile = "fbgraph.db"
@@ -181,6 +182,7 @@ func main() {
 	fMaxUid := flag.Uint64("u", math.MaxUint64, "max uid to grab")
 	flag.Parse()
 
+        var ErrLimit = fmt.Errorf("(#4) Application request limit reached")
 	var total uint64
 	for uid := uint64(0); uid < *fMaxUid; uid++ {
 		u, err := fetchUser(uid)
@@ -188,6 +190,11 @@ func main() {
 			logMsg := fmt.Sprintf("failed uid %d: %s", uid,
 				err.Error())
 			log.Println(logMsg)
+                        if err.Error() == ErrLimit.Error() {
+                                uid--;
+                                <-time.After(1 * time.Hour)
+                                continue
+                        }
 		} else {
 			total++
 			logMsg := fmt.Sprintf("stored uid %d (%s)", uid,
