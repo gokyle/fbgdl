@@ -209,6 +209,7 @@ func main() {
 	}
 
 	fMaxUid := flag.Uint64("u", math.MaxUint64, "max uid to grab")
+        fDelay := flag.Duration("d", time.Hour, "delay on application timeout")
 	flag.Parse()
 
 	if *fMaxUid < start {
@@ -227,7 +228,7 @@ func main() {
 			log.Println(logMsg)
 			if err.Error() == ErrLimit.Error() {
 				uid--
-				<-time.After(1 * time.Hour)
+				<-time.After(*fDelay)
 				continue
 			}
 		} else {
