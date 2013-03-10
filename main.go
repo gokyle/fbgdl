@@ -13,7 +13,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-        "time"
+	"time"
 )
 
 const dbFile = "fbgraph.db"
@@ -150,6 +150,27 @@ func createDB() (err error) {
 	return
 }
 
+func getLastUser() (count uint64, err error) {
+	db, err := sql.Open("sqlite3", dbFile)
+	if err != nil {
+		return
+	}
+	defer db.Close()
+
+	row := db.QueryRow("select count(*) from users")
+	err = row.Scan(&count)
+	if err != nil {
+		return
+	}
+	if count == 0 {
+		return
+	}
+
+	row := db.QueryRow("select max(id) from users")
+	err = row.Scan(&count)
+	return
+}
+
 // fetchUser grabs a user from the Graph, storing the user in the database
 // if it is a valid user. Otherwise, an error is returned.
 func fetchUser(uid uint64) (u *User, err error) {
@@ -179,10 +200,19 @@ func fetchUser(uid uint64) (u *User, err error) {
 func main() {
 	checkDatabase()
 
+	start, err := getLastUser()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	fMaxUid := flag.Uint64("u", math.MaxUint64, "max uid to grab")
 	flag.Parse()
 
-        var ErrLimit = fmt.Errorf("(#4) Application request limit reached")
+	if *fMaxUid < start {
+		log.Fatal("max uid is less than starting uid")
+	}
+
+	var ErrLimit = fmt.Errorf("(#4) Application request limit reached")
 	var total uint64
 	for uid := uint64(0); uid < *fMaxUid; uid++ {
 		u, err := fetchUser(uid)
@@ -190,11 +220,11 @@ func main() {
 			logMsg := fmt.Sprintf("failed uid %d: %s", uid,
 				err.Error())
 			log.Println(logMsg)
-                        if err.Error() == ErrLimit.Error() {
-                                uid--;
-                                <-time.After(1 * time.Hour)
-                                continue
-                        }
+			if err.Error() == ErrLimit.Error() {
+				uid--
+				<-time.After(1 * time.Hour)
+				continue
+			}
 		} else {
 			total++
 			logMsg := fmt.Sprintf("stored uid %d (%s)", uid,
