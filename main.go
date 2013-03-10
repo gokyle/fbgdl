@@ -181,7 +181,7 @@ func main() {
 	fMaxUid := flag.Uint64("u", math.MaxUint64, "max uid to grab")
 	flag.Parse()
 
-        var total uint64
+	var total uint64
 	for uid := uint64(0); uid < *fMaxUid; uid++ {
 		u, err := fetchUser(uid)
 		if err != nil {
@@ -189,13 +189,13 @@ func main() {
 				err.Error())
 			log.Println(logMsg)
 		} else {
-                        total++
+			total++
 			logMsg := fmt.Sprintf("stored uid %d (%s)", uid,
 				u.Username)
 			log.Println(logMsg)
-                        if total > 0 && total % 1000 == 0 {
-                                log.Printf("%d users stored\n", total)
-                        }
+			if total > 0 && total%1000 == 0 {
+				log.Printf("%d users stored\n", total)
+			}
 		}
 	}
 }
