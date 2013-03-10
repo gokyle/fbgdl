@@ -168,6 +168,9 @@ func getLastUser() (count uint64, err error) {
 
 	row = db.QueryRow("select max(id) from users")
 	err = row.Scan(&count)
+        if err == nil {
+                count++
+        }
 	return
 }
 
