@@ -210,11 +210,13 @@ func main() {
 
 	if *fMaxUid < start {
 		log.Fatal("max uid is less than starting uid")
+	} else {
+		log.Printf("grabbing uids from %d to %d\n", start, *fMaxUid)
 	}
 
 	var ErrLimit = fmt.Errorf("(#4) Application request limit reached")
 	var total uint64
-	for uid := uint64(0); uid < *fMaxUid; uid++ {
+	for uid := start; uid < *fMaxUid; uid++ {
 		u, err := fetchUser(uid)
 		if err != nil {
 			logMsg := fmt.Sprintf("failed uid %d: %s", uid,
